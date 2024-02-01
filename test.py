@@ -14,25 +14,25 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.setToolTip('Tooltip')
 
         menu = QtWidgets.QMenu(parent)
-        get = getData()
-        for item in get:
-            name, queueId = item.get('name'), item.get('queueId')
-            open_app = menu.addAction(f"{name} {queueId}")
-
-            # Pass current values as default arguments to the lambda function
-            open_app.triggered.connect(lambda n=name, q=queueId: self.open_notepad(n, q))
-            open_app.hovered.connect(lambda: self.setHoverIcon(open_app, "icon.png"))
+        # get = getData()
+        # for item in get:
+        #     name, queueId = item.get('name'), item.get('queueId')
+        #     open_app = menu.addAction(f"{name} {queueId}")
+        #     open_app.triggered.connect(lambda n=name, q=queueId: self.sendRequest(n, q))
+        #     open_app.hovered.connect(lambda: self.setHoverIcon(open_app, "icon.png"))
         exit_ = menu.addAction("Exit")
         exit_.setIcon(QtGui.QIcon("exit.png"))
         exit_.triggered.connect(lambda: sys.exit())
 
         self.setContextMenu(menu)
+        self.activated.connect(self.onTrayIconActivated)
 
-
+    def onTrayIconActivated(self,reason):
+        print('clicked')
     def setHoverIcon(self, action, hover_icon_path):
         action.setIcon(QtGui.QIcon(hover_icon_path))
 
-    def open_notepad(self, name, queueId):
+    def sendRequest(self, name, queueId):
         print(f"Opening Notepad for {name} with Queue ID {queueId}")
         message = updateData(queueId)
         notified("Update", message)
