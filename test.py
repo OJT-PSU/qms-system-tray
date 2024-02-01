@@ -1,8 +1,13 @@
 import os
 import sys
 from PySide6 import QtWidgets, QtGui
-from request import getData
+from request import getData, updateData
 
+def notified(status,message):
+    w = QtWidgets.QWidget()
+    tray_icon = SystemTrayIcon(QtGui.QIcon("icon.png"), w)
+    tray_icon.show()
+    tray_icon.showMessage(status, message)
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
     def __init__(self, icon, parent=None):
         QtWidgets.QSystemTrayIcon.__init__(self, icon, parent)
@@ -29,10 +34,8 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
     def open_notepad(self, name, queueId):
         print(f"Opening Notepad for {name} with Queue ID {queueId}")
-        w = QtWidgets.QWidget()
-        tray_icon = SystemTrayIcon(QtGui.QIcon("icon.png"), w)
-        tray_icon.show()
-        tray_icon.showMessage('Title', f'{name}')
+        message = updateData(queueId)
+        notified("Update", message)
 def main():
     app = QtWidgets.QApplication(sys.argv)
     w = QtWidgets.QWidget()
