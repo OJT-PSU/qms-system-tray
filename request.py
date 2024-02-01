@@ -1,12 +1,15 @@
-import requests
+import aiohttp
+import asyncio
 
-fetch = requests.get('http://192.168.50.162:3000/queue')
-
-# Check if the request was successful (status code 200)
+async def fetch_data():
+    async with aiohttp.ClientSession() as session:
+        async with session.get('http://192.168.50.162:3000/queue') as response:
+            if response.status == 200:
+                data = await response.json()
+                return data
+            else:
+                print(f"Error: {response.status}")
+                return None  # or any default value you want to assign in case of an error
 def getData():
-    if fetch.status_code == 200:
-        data = fetch.json()  # Use json() method directly on the Response object
-    else:
-        print(f"Error: {fetch.status_code}")
+    data = asyncio.run(fetch_data())
     return data
-
