@@ -1,20 +1,29 @@
-import requests  
+import requests , os
+from dotenv import load_dotenv
+load_dotenv()
 
 def getOne(id):
-    fetch = requests.get(f'http://192.168.50.162:3000/queue/waiting')
+    fetch = requests.get(f"{os.getenv('URL')}/queue/waiting")
     fetch = fetch.json()
     data = False
     for item in fetch:
         if item['queueId'] == id:
-          data =True
+          data = item['queueStatus']
     return data
 def getData():
-    fetch = requests.get('http://192.168.50.162:3000/queue/waiting')
-    return fetch.json()
+    data = []
+    fetch = requests.get(f'{os.getenv("URL")}/queue')
+    fetch = fetch.json()
+    for item in fetch:
+        if item['queueStatus'] != 'accommodated':
+            data.append(item)
+    return data
 def updateData(id):
-    data = {"queueId": int(id), "queueStatus": "accommodated"}
+    getOneQueue = getOne(id)
+    status ="ongoing" if getOneQueue == "waiting" else "accommodated"
+    data = {"queueId": int(id), "queueStatus": status}
     headers = {'Content-Type': 'application/json'}
-    fetch = requests.patch('http://192.168.50.162:3000/queue', json=data, headers=headers)
+    fetch = requests.patch(f'{os.getenv("URL")}/queue', json=data, headers=headers)
     result = fetch.json()
     message = f"{result['name']} is now {result['queueStatus']}" if fetch.status_code==200 else "Something Went Wrong"
     return message

@@ -2,48 +2,70 @@ import os
 import sys
 from PySide6 import QtWidgets, QtGui
 from request import getData, updateData
+from dotenv import load_dotenv
 
-def notified(status,message):
+load_dotenv()
+def notified(status, message):
     w = QtWidgets.QWidget()
-    tray_icon = SystemTrayIcon(QtGui.QIcon("icon.png"), w)
+    tray_icon = SystemTrayIcon(QtGui.QIcon("assets/logo.png"), w)
     tray_icon.show()
     tray_icon.showMessage(status, message)
+
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
     def __init__(self, icon, parent=None):
         QtWidgets.QSystemTrayIcon.__init__(self, icon, parent)
         self.setToolTip('Tooltip')
 
-        menu = QtWidgets.QMenu(parent)
-        # get = getData()
-        # for item in get:
-        #     name, queueId = item.get('name'), item.get('queueId')
-        #     open_app = menu.addAction(f"{name} {queueId}")
-        #     open_app.triggered.connect(lambda n=name, q=queueId: self.sendRequest(n, q))
-        #     open_app.hovered.connect(lambda: self.setHoverIcon(open_app, "icon.png"))
-        exit_ = menu.addAction("Exit")
+        self.menu = QtWidgets.QMenu(parent)
+
+        exit_ = self.menu.addAction("Exit")
         exit_.setIcon(QtGui.QIcon("exit.png"))
         exit_.triggered.connect(lambda: sys.exit())
 
-        self.setContextMenu(menu)
+        self.setContextMenu(self.menu)
         self.activated.connect(self.onTrayIconActivated)
 
-    def onTrayIconActivated(self,reason):
-        print('clicked')
+    def onTrayIconActivated(self, reason):
+        if reason == QtWidgets.QSystemTrayIcon.Trigger:
+            self.refreshMenu()
+
+    def refreshMenu(self):
+        # Clear the existing menu
+        self.menu.clear()
+
+        # Add new items
+        get = getData()
+        if(len(get) == 0):
+            open_app = self.menu.addAction(f"Empty")
+            open_app.triggered.connect(lambda n="Empty", q="0": self.sendRequest(n, q))
+            # open_app.hovered.connect(lambda: self.setHoverIcon(open_app, "assets/logo.png"))
+        else:
+            for item in get:
+                name, queueId, queueStatus = item.get('name'), item.get('queueId'), item.get('queueStatus')
+                open_app = self.menu.addAction(f"{name} {queueId}")
+                open_app.triggered.connect(lambda n=name, q=queueId: self.sendRequest(n, q))
+                if queueStatus == 'ongoing':
+                    open_app.hovered.connect(lambda: self.setHoverIcon(open_app, "assets/logo.png"))
+
+        # Add exit action back to the menu
+        exit_ = self.menu.addAction("Exit")
+        exit_.setIcon(QtGui.QIcon("assets/exit.png"))
+        exit_.triggered.connect(lambda: sys.exit())
+
     def setHoverIcon(self, action, hover_icon_path):
         action.setIcon(QtGui.QIcon(hover_icon_path))
 
     def sendRequest(self, name, queueId):
-        print(f"Opening Notepad for {name} with Queue ID {queueId}")
         message = updateData(queueId)
         notified("Update", message)
+
 def main():
     app = QtWidgets.QApplication(sys.argv)
     w = QtWidgets.QWidget()
-    tray_icon = SystemTrayIcon(QtGui.QIcon("icon.png"), w)
+    tray_icon = SystemTrayIcon(QtGui.QIcon("assets/logo.png"), w)
     tray_icon.show()
-    tray_icon.showMessage('Title', 'Description')
+    tray_icon.showMessage('Welcome',os.getenv("CASHIER_NAME"))
     sys.exit(app.exec())
-
 
 if __name__ == '__main__':
     main()
