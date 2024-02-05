@@ -1,10 +1,9 @@
-import os
-import sys
+import os, configparser, sys
 from PySide6 import QtWidgets, QtGui
 from request import getData, updateData
-from dotenv import load_dotenv
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
-load_dotenv()
 def notified(status, message):
     w = QtWidgets.QWidget()
     tray_icon = SystemTrayIcon(QtGui.QIcon("assets/logo.png"), w)
@@ -42,10 +41,12 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         else:
             for item in get:
                 name, queueId, queueStatus = item.get('name'), item.get('queueId'), item.get('queueStatus')
-                open_app = self.menu.addAction(f"{name} {queueId}")
-                open_app.triggered.connect(lambda n=name, q=queueId: self.sendRequest(n, q))
                 if queueStatus == 'ongoing':
-                    open_app.hovered.connect(lambda: self.setHoverIcon(open_app, "assets/logo.png"))
+                    open_app = self.menu.addAction(f"{name} {queueStatus}")
+                else:
+                    open_app = self.menu.addAction(f"{name}")
+                open_app.triggered.connect(lambda n=name, q=queueId: self.sendRequest(n, q))
+                    # open_app.hovered.connect(lambda: self.setHoverIcon(open_app, "assets/logo.png"))
 
         # Add exit action back to the menu
         exit_ = self.menu.addAction("Exit")
@@ -64,7 +65,7 @@ def main():
     w = QtWidgets.QWidget()
     tray_icon = SystemTrayIcon(QtGui.QIcon("assets/logo.png"), w)
     tray_icon.show()
-    tray_icon.showMessage('Welcome',os.getenv("CASHIER_NAME"))
+    tray_icon.showMessage('Welcome',config.get('Configuration', 'CASHIER_NAME'))
     sys.exit(app.exec())
 
 if __name__ == '__main__':
