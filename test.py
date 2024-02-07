@@ -49,6 +49,10 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
                     # open_app.hovered.connect(lambda: self.setHoverIcon(open_app, "assets/logo.png"))
 
         # Add exit action back to the menu
+        # next = self.menu.addAction("Next")
+        # next.setIcon(QtGui.QIcon("assets/next.png"))
+        # next.triggered.connect(lambda: sys.exit())
+        self.menu.setStyleSheet("font-size: 24px")
         exit_ = self.menu.addAction("Exit")
         exit_.setIcon(QtGui.QIcon("assets/exit.png"))
         exit_.triggered.connect(lambda: sys.exit())
