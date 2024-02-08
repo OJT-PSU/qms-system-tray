@@ -11,15 +11,21 @@ def getOne(id):
         if item['queueId'] == id:
           data = item['queueStatus']
     return data
-def getData():
+def getOneRowWaiting(terminalTransactionType):
     data = []
     fetch = requests.get(f"{config.get('Configuration', 'URL')}/queue")
     fetch = fetch.json()
     for item in fetch:
-        if item['queueStatus'] != 'accommodated':
+        if item['queueStatus'] != 'accommodated' and item['transactionType'] == terminalTransactionType:
             data.append(item)
-    data_sorted = sorted(data, key=lambda x: x.get('queueStatus', ''))
-    return data_sorted
+    if(len(data)>0):
+        data_sorted = sorted(data, key=lambda x: x.get('queueId', ''))
+        print(type(data_sorted))
+        return data_sorted[0]
+    
+    return {}
+
+print(getOneRowWaiting('payment'))
 def updateData(id):
     getOneQueue = getOne(id)
     status ="ongoing" if getOneQueue == "waiting" else "accommodated"
