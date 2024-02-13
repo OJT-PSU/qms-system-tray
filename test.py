@@ -1,8 +1,23 @@
 import os, configparser, sys
 from PySide6 import QtWidgets, QtGui
-from request import getOneRowWaiting, updateData, getOneTerminal
-config = configparser.ConfigParser()
-config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
+from request import getOneRowWaiting, updateData
+
+def read_config(key):
+    config = configparser.ConfigParser()
+    if getattr(sys, 'frozen', False):  # Check if running from PyInstaller bundle
+        exe_dir = os.path.dirname(sys.executable)
+    else:
+        exe_dir = os.path.dirname(__file__)  # Get the directory where the script is located
+
+    config_file_path = os.path.join(exe_dir, 'config.ini')
+
+    if os.path.exists(config_file_path):
+        config.read(config_file_path)
+        return config['Configuration'].get(key, None)
+    else:
+
+        raise FileNotFoundError("Config file config.ini not found.")
+
 def notified(status, message):
     w = QtWidgets.QWidget()
     tray_icon = SystemTrayIcon(QtGui.QIcon("logo.png"), w)
@@ -36,7 +51,6 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             next.setIcon(QtGui.QIcon(f'{ "next" if queueStatus=="waiting" else "finish"}.png'))
             next.triggered.connect(lambda n=name, q=queueId: self.sendRequest(n, q))
                 
-        # self.menu.setStyleSheet(open("style.css", "r").read())
         exit_ = self.menu.addAction("Exit")
         exit_.setIcon(QtGui.QIcon("exit.png"))
         exit_.triggered.connect(lambda: sys.exit())
@@ -49,12 +63,16 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         notified("Update", message)
 
 def main():
-    app = QtWidgets.QApplication(sys.argv)
-    w = QtWidgets.QWidget()
-    tray_icon = SystemTrayIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__), "systemTray.ico")), w)
-    tray_icon.setVisible(True)
-    tray_icon.showMessage('Welcome',config.get('Configuration', 'CASHIER_NAME'))
-    sys.exit(app.exec())
+    try:
+        app = QtWidgets.QApplication(sys.argv)
+        w = QtWidgets.QWidget()
+        tray_icon = SystemTrayIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__), "systemTray.ico")), w)
+        tray_icon.setVisible(True)
+        tray_icon.showMessage('Welcome', read_config('CASHIER_NAME'))
+        sys.exit(app.exec())
+    except FileNotFoundError as e:
+        print(e)
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
