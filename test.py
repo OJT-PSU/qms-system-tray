@@ -20,7 +20,7 @@ def read_config(key):
 
 def notified(status, message):
     w = QtWidgets.QWidget()
-    tray_icon = SystemTrayIcon(QtGui.QIcon("logo.png"), w)
+    tray_icon = SystemTrayIcon(QtGui.QIcon("assets/logo.png"), w)
     tray_icon.show()
     tray_icon.showMessage(status, message)
 
@@ -48,15 +48,18 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             name, queueId, queueStatus = queueCustomer.get('name'), queueCustomer.get('queueId'), queueCustomer.get('queueStatus')
             self.menu.addAction(f"{name} {queueStatus}")
             next = self.menu.addAction(f'{ "Next" if queueStatus=="waiting" else "Finish"}')
-            next.setIcon(QtGui.QIcon(f'{ "next" if queueStatus=="waiting" else "finish"}.png'))
+            next.setIcon(QtGui.QIcon(f'assets/{ "next" if queueStatus=="waiting" else "finish"}.png'))
             next.triggered.connect(lambda n=name, q=queueId: self.sendRequest(n, q))
+            call = self.menu.addAction(f"Call {name}")
+            call.setIcon(QtGui.QIcon("assets/notify.png"))
+            call.triggered.connect(lambda n=name, q=queueId: self.alert(n,q))
                 
         exit_ = self.menu.addAction("Exit")
-        exit_.setIcon(QtGui.QIcon("exit.png"))
+        exit_.setIcon(QtGui.QIcon("assets/exit.png"))
         exit_.triggered.connect(lambda: sys.exit())
 
-    def setHoverIcon(self, action, hover_icon_path):
-        action.setIcon(QtGui.QIcon(hover_icon_path))
+    def alert(self,name,queueId):
+        print(f"Call {name} {queueId}")
 
     def sendRequest(self, name, queueId):
         message = updateData(queueId)
@@ -66,10 +69,10 @@ def main():
     try:
         app = QtWidgets.QApplication(sys.argv)
         w = QtWidgets.QWidget()
-        tray_icon = SystemTrayIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__), "systemTray.ico")), w)
+        tray_icon = SystemTrayIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__), "assets/systemTray.ico")), w)
         tray_icon.setVisible(True)
         tray_icon.showMessage('Welcome', read_config('CASHIER_NAME'))
-        sys.exit(app.exec())
+        app.exec()
     except FileNotFoundError as e:
         print(e)
         sys.exit(1)

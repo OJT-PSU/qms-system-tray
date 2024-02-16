@@ -36,7 +36,7 @@ def getOneRowWaiting():
     fetch = requests.get(f"{read_config('URL')}/queue")
     fetch = fetch.json()
     for item in fetch:
-        if item['queueStatus'] != 'accommodated' and item['transactionType'] == transactionType:
+        if item['queueStatus'] != 'accommodated' and item['transactionType'] == transactionType and item['toDisplay'] == 0:
             data.append(item)
     if(len(data)>0):
         data_sorted = sorted(data, key=lambda x: x.get('queueId', ''))
