@@ -1,6 +1,9 @@
 import os, configparser, sys
 from PySide6 import QtWidgets, QtGui
 from request import getOneRowWaiting, updateData
+import socketio
+
+# standard Python
 
 def read_config(key):
     config = configparser.ConfigParser()
@@ -34,6 +37,9 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.menu = QtWidgets.QMenu(parent)
         self.setContextMenu(self.menu)
         self.activated.connect(self.onTrayIconActivated)
+        self.sio = socketio.SimpleClient()
+        self.sio.connect(f'http://localhost:3000')
+
     
     def onTrayIconActivated(self):
         self.refreshMenu()
@@ -60,6 +66,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
     def alert(self,name,queueId):
         print(f"Call {name} {queueId}")
+        self.sio.emit('ping-request', {name: name, queueId: queueId})
 
     def sendRequest(self, name, queueId):
         message = updateData(queueId)
