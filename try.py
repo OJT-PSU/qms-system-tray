@@ -25,7 +25,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.setContextMenu(self.menu)
         self.activated.connect(self.onTrayIconActivated)
         self.sio = socketio.SimpleClient()
-        self.sio.connect(f'http://localhost:3000')
+        self.sio.connect(read_config('URL'))
 
     def onTrayIconActivated(self):
         self.refreshMenu()
