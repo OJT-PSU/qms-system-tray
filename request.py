@@ -31,13 +31,20 @@ def getTerminal():
     else:
         return fetchTerminal.get('transactionType')
 def getOneRowWaiting():
-    data = []
     transactionType = getTerminal()
     fetch = requests.get(f"{read_config('URL')}/queue")
     fetch = fetch.json()
+
+    terminal = str(read_config('TERMINAL'))
+
+    data = [obj for obj in fetch if obj['terminal'] == terminal and obj['toDisplay'] == 0]
+    if len(data) > 0:
+        return data[0]
+
     for item in fetch:
-        if item['queueStatus'] != 'accommodated' and item['transactionType'] == transactionType and item['toDisplay'] == 0:
+        if item['queueStatus'] != 'accommodated' and item['transactionType'] == transactionType and item['toDisplay'] == 0 and item['terminal'] == None:
             data.append(item)
+
     if(len(data)>0):
         data_sorted = sorted(data, key=lambda x: x.get('queueId', ''))
         return data_sorted[0]
@@ -59,5 +66,3 @@ def updateData(id):
     result = fetch.json()
     message = f"{result['name']} is now {result['queueStatus']}" if fetch.status_code==200 else "Something Went Wrong"
     return message
-
-
