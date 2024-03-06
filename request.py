@@ -35,10 +35,10 @@ def getOneRowWaiting():
     fetch = requests.get(f"{read_config('URL')}/queue")
     fetch = fetch.json()
 
-    terminal = str(read_config('TERMINAL'))
+    terminalDetails = getOneTerminal()
 
-    data = [obj for obj in fetch if obj['terminal'] == terminal and obj['toDisplay'] == 0]
-    if len(data) > 0:
+    data = [obj for obj in fetch if obj['terminal'] == terminalDetails.get('terminalName') and obj['toDisplay'] == 0]
+    if(len(data) > 0):
         return data[0]
 
     for item in fetch:

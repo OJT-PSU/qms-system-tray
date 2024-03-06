@@ -64,7 +64,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 def main():
     try:
         app = QtWidgets.QApplication(sys.argv)
-        tray_icon = SystemTrayIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__), "assets/systemTray.ico")))
+        tray_icon = SystemTrayIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__),"systemTray.ico")))
         tray_icon.setVisible(True)
         tray_icon.showMessage('Welcome', read_config('CASHIER_NAME'))
         sys.exit(app.exec())
