@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['try.py'],
+    ['qms_tms.py'],
     pathex=[],
     binaries=[],
      datas=[('config.ini', '.'),  

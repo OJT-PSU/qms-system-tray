@@ -30,6 +30,26 @@ def getTerminal():
         return None
     else:
         return fetchTerminal.get('transactionType')
+
+def getOnePriority():
+    data = []
+    transactionType = getTerminal()
+    fetch = requests.get(f"{read_config('URL')}/queue")
+    fetch = fetch.json()
+
+    terminalDetails = getOneTerminal()
+
+    data = [obj for obj in fetch if obj['terminal'] == terminalDetails.get('terminalName') and obj['toDisplay'] == 0 and obj['priorityType'] != "normal"]
+    if(len(data) > 0):
+        return data[0]
+    for item in fetch:
+        if item['queueStatus'] != 'accommodated' and item['transactionType'] == transactionType and item['toDisplay'] == 0 and item['terminal'] == None and item['priorityType'] != "normal":
+            data.append(item)
+    if(len(data)>0):
+        data_sorted = sorted(data, key=lambda x: x.get('queueId', ''))
+        return data_sorted[0]
+    return {}
+
 def getOneRowWaiting():
     data = []
     transactionType = getTerminal()
@@ -38,12 +58,12 @@ def getOneRowWaiting():
 
     terminalDetails = getOneTerminal()
 
-    data = [obj for obj in fetch if obj['terminal'] == terminalDetails.get('terminalName') and obj['toDisplay'] == 0]
+    data = [obj for obj in fetch if obj['terminal'] == terminalDetails.get('terminalName') and obj['toDisplay'] == 0 and obj['priorityType'] == "normal"]
     if(len(data) > 0):
         return data[0]
 
     for item in fetch:
-        if item['queueStatus'] != 'accommodated' and item['transactionType'] == transactionType and item['toDisplay'] == 0 and item['terminal'] == None:
+        if item['queueStatus'] != 'accommodated' and item['transactionType'] == transactionType and item['toDisplay'] == 0 and item['terminal'] == None and item['priorityType'] == "normal":
             data.append(item)
     if(len(data)>0):
         data_sorted = sorted(data, key=lambda x: x.get('queueId', ''))

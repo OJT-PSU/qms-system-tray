@@ -2,7 +2,7 @@ import os
 import configparser
 import sys
 from PySide6 import QtWidgets, QtGui, QtCore  # Add QtCore import
-from request import getOneRowWaiting, updateData, read_config
+from request import getOneRowWaiting, getOnePriority, updateData, read_config
 import socketio
 
 # Custom QMenu subclass to keep the menu open after an action is clicked
@@ -32,12 +32,31 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
     def refreshMenu(self):
         self.menu.clear()
-        self.menu.setStyleSheet("font-size: 24px")
         queueCustomer = getOneRowWaiting()
+        priorityCustomer = getOnePriority()
+        
+        if(priorityCustomer):
+            self.menu.addSeparator()
+            priority = self.menu.addAction("Priority Queue")
+            priority.setIcon(QtGui.QIcon("assets/priority.png"))
 
+            self.menu.addSeparator()
+            name, queueId, queueStatus = priorityCustomer.get('name'), priorityCustomer.get('queueId'), priorityCustomer.get('queueStatus')
+            self.menu.addAction(f"{name} {queueStatus}")
+            next = self.menu.addAction(f'{ "Next" if queueStatus=="waiting" else "Finish"}')
+            next.setIcon(QtGui.QIcon(f'assets/{ "next" if queueStatus=="waiting" else "finish"}.png'))
+            next.triggered.connect(lambda n=name, q=queueId: self.sendRequest(n, q))
+            if queueStatus=="ongoing":
+                call = self.menu.addAction(f"Call {name}")
+                call.setIcon(QtGui.QIcon("assets/notify.png"))
+                call.triggered.connect(lambda n=name, q=queueId: self.alert(n,q))
+            self.menu.addSeparator()
         if(len(queueCustomer.keys())==0):
-            self.menu.addAction(f"No List")
+            self.menu.addAction(f"No Queue")
         else:
+            normal = self.menu.addAction("Normal Queue")
+            normal.setIcon(QtGui.QIcon("assets/normal.png"))
+            self.menu.addSeparator()
             name, queueId, queueStatus = queueCustomer.get('name'), queueCustomer.get('queueId'), queueCustomer.get('queueStatus')
             self.menu.addAction(f"{name} {queueStatus}")
             next = self.menu.addAction(f'{ "Next" if queueStatus=="waiting" else "Finish"}')
@@ -47,7 +66,26 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
                 call = self.menu.addAction(f"Call {name}")
                 call.setIcon(QtGui.QIcon("assets/notify.png"))
                 call.triggered.connect(lambda n=name, q=queueId: self.alert(n,q))
+        self.menu.setStyleSheet("""
+            QMenu {
+                font-size: 24px; 
+                background-color: 
+            }
 
+            QMenu::item {
+                color: #333; 
+                padding:10px;
+            }
+
+            QMenu::item:selected {
+                color: #3B82F6; 
+                border: 1px solid #3B82F6; 
+            }
+            QMenu::separator{
+                height:3px;
+                background: lightblue;
+            }
+            """)
         exit_ = self.menu.addAction("Exit")
         exit_.setIcon(QtGui.QIcon("assets/exit.png"))
         exit_.triggered.connect(lambda: sys.exit())
