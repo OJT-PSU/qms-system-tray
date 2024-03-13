@@ -70,7 +70,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
                 self.menu.addAction(f"{name} {queueStatus}")
                 next = self.menu.addAction(f'{ "Next" if queueStatus=="waiting" else "Finish"}')
                 next.setIcon(QtGui.QIcon(f'assets/{ "next" if queueStatus=="waiting" else "finish"}.png'))
-                next.triggered.connect(lambda n=name, q=queueId: self.sendRequest(n, q))
+                next.triggered.connect(lambda n=name, q=queueId, qs=queueStatus: self.sendRequest(n, q, qs))
                 if queueStatus=="ongoing":
                     call = self.menu.addAction(f"Call {name}")
                     call.setIcon(QtGui.QIcon("assets/notify.png"))
@@ -103,8 +103,10 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         print(f"Call {name} {queueId}")
         self.sio.emit('ping-request', {"name": name, "queueId": queueId})
 
-    def sendRequest(self, name, queueId):
-        message = updateData(queueId)
+    def sendRequest(self, name, queueId,qs):
+        if(qs=="waiting"):
+            self.alert( name, queueId)
+        updateData(queueId)
         self.refreshMenu()
         # notified("Update", message)
 
