@@ -103,7 +103,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         print(f"Call {name} {queueId}")
         self.sio.emit('ping-request', {"name": name, "queueId": queueId})
 
-    def sendRequest(self, name, queueId,qs):
+    def sendRequest(self, name, queueId,qs="None"):
         if(qs=="waiting"):
             self.alert( name, queueId)
         updateData(queueId)
