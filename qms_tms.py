@@ -29,7 +29,14 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
     def onTrayIconActivated(self):
         self.refreshMenu()
-
+    def confirmExit(self):
+        self.menu.clear()
+        next = self.menu.addAction(f'{"Confirm Exit"}')
+        next.setIcon(QtGui.QIcon(f'{"check"}.png'))
+        next.triggered.connect(lambda: sys.exit())
+        next = self.menu.addAction(f'{"Cancel Exit"}')
+        next.setIcon(QtGui.QIcon(f'{"cancel"}.png'))
+        next.triggered.connect(lambda : self.confirmExit())
     def refreshMenu(self):
         self.menu.clear()
         queueCustomer = getOneRowWaiting()
@@ -102,7 +109,8 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
     def alert(self,name,queueId):
         print(f"Call {name} {queueId}")
         self.sio.emit('ping-request', {"name": name, "queueId": queueId})
-
+    def cancelExit(self):
+        self.refreshMenu()
     def sendRequest(self, name, queueId,qs="None"):
         if(qs=="waiting"):
             self.alert( name, queueId)
